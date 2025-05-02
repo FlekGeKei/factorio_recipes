@@ -8,12 +8,35 @@
 
     },
     {
+      "name": "urino",
+      "kind": "Simple",
+      "ingredients": [
+        {
+          "name": "water",
+          "amount": 1.0
+        }
+      ],
+      "craft_time": 1.0,
+      "craft_amount": 1.0
+    },
+    {
+      "name": "water",
+      "kind": "Simple",
+      "ingredients": null,
+      "craft_amount": 1.0,
+      "craft_time": 1.0
+    },
+    {
         "name": "pee",
         "kind": "Simple",
         "ingredients": [
         {
             "name": "oil",
             "amount": 2.0
+        },
+        {
+          "name": "urino",
+          "amount": 2.0
         }
         ],
         "craft_time": 0.1,
