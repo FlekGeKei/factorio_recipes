@@ -1,0 +1,22 @@
+[
+    {
+        "name": "oil",
+        "kind": {"Complex": "advanced_oil_processing"},
+        "ingredients": null,
+        "craft_time": 1.0,
+        "craft_amount": 1.0
+
+    },
+    {
+        "name": "pee",
+        "kind": "Simple",
+        "ingredients": [
+        {
+            "name": "oil",
+            "amount": 2.0
+        }
+        ],
+        "craft_time": 0.1,
+        "craft_amount": 0.2
+    }
+]
