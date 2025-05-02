@@ -38,13 +38,14 @@ fn get_instruction(
     let mut got_instruction: Vec<Instruction> = Vec::new();
 
     for ingr in &ingr_orders {
-        let mut sub_instructions: Vec<Instruction> = Vec::new();
+        let sub_instructions: Option<Vec<Instruction>>;
         match hash_map.get(&ingr.name) {
             Some(ingr_recipe) => {
                 let ingr_production_per_second =
                     ingr.amount / ingr_recipe.craft_amount / ingr_recipe.craft_time;
                 match &ingr_recipe.ingredients {
                     Some(ingr_recipe_ingrs) => {
+                        let mut tmp_instructions: Vec<Instruction> = Vec::new();
                         for ingr_recipe_ingr_to_order in ingr_recipe_ingrs {
                             let neded_amount =
                                 ingr_recipe_ingr_to_order.amount * ingr_production_per_second;
@@ -55,23 +56,14 @@ fn get_instruction(
                                     amount: neded_amount,
                                 }],
                             );
-
-                            sub_instructions.push(Instruction {
-                                ingredient: Ingredient {
-                                    name: String::new(),
-                                    amount: 0.0,
-                                },
-                                sub_instruction: instruction_out.into(),
-                            });
+                            dbg!(&instruction_out);
+                            for instruct in instruction_out {
+                                tmp_instructions.push(instruct);
+                            }
                         }
+                        sub_instructions = tmp_instructions.into();
                     }
-                    None => sub_instructions.push(Instruction {
-                        ingredient: Ingredient {
-                            name: ingr.name.clone(),
-                            amount: ingr.amount,
-                        },
-                        sub_instruction: None,
-                    }),
+                    None => sub_instructions = None,
                 }
             }
             None => {
@@ -81,22 +73,12 @@ fn get_instruction(
                 );
             }
         }
-
-        let sub_instruction: Option<Vec<Instruction>> = {
-            let mut tmp_inst: Vec<Instruction> = Vec::new();
-            for instruction in sub_instructions {
-                if instruction.sub_instruction.is_some() {
-                    tmp_inst.append(&mut instruction.sub_instruction.unwrap());
-                }
-            }
-            tmp_inst.into()
-        };
         got_instruction.push(Instruction {
             ingredient: Ingredient {
                 name: ingr.name.clone(),
                 amount: ingr.amount,
             },
-            sub_instruction,
+            sub_instruction: sub_instructions,
         });
     }
 
@@ -133,7 +115,6 @@ fn main() {
         get_order(Path::new("./request.json")).expect("normal json"),
     );
     dbg!(instruction);
-
     /*
     let mut refineries: f64 = 1.0;
     loop {
