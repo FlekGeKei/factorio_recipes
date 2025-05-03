@@ -1,5 +1,12 @@
 use serde::{Deserialize, Serialize};
-use std::{collections::HashMap, env, fs::File, io::BufReader, path::Path, vec};
+use std::{
+    collections::{hash_map, HashMap},
+    env,
+    fs::File,
+    io::BufReader,
+    path::Path,
+    vec,
+};
 
 #[derive(Debug, Serialize, Deserialize)]
 #[allow(dead_code)]
@@ -56,7 +63,6 @@ fn get_instruction(
                                     amount: neded_amount,
                                 }],
                             );
-                            dbg!(&instruction_out);
                             for instruct in instruction_out {
                                 tmp_instructions.push(instruct);
                             }
@@ -85,7 +91,8 @@ fn get_instruction(
     got_instruction
 }
 
-fn recipe_add(hash_map: &mut HashMap<String, Recipe>, path: &Path) -> std::io::Result<()> {
+fn recipe_add(path: &Path) -> std::io::Result<HashMap<String, Recipe>> {
+    let mut hash_map: HashMap<String, Recipe> = Default::default();
     let file = File::open(path)?;
     let reader = BufReader::new(file);
 
@@ -93,7 +100,7 @@ fn recipe_add(hash_map: &mut HashMap<String, Recipe>, path: &Path) -> std::io::R
     for rec in json_recep {
         hash_map.insert(rec.name.clone(), rec);
     }
-    Ok(())
+    Ok(hash_map)
 }
 
 fn get_order(path: &Path) -> std::io::Result<Vec<Ingredient>> {
@@ -106,9 +113,8 @@ fn get_order(path: &Path) -> std::io::Result<Vec<Ingredient>> {
 
 fn main() {
     let args: Vec<String> = env::args().collect();
-    let mut recipes: HashMap<String, Recipe> = HashMap::new();
 
-    let _ = recipe_add(&mut recipes, Path::new("./recipes.json"));
+    let recipes = recipe_add(Path::new("./recipes.json")).expect("normal json");
 
     let instruction = get_instruction(
         &recipes,
