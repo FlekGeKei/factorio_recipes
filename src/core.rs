@@ -4,7 +4,6 @@ use std::collections::HashMap;
 use std::fs::File;
 use std::io::BufReader;
 use std::path::Path;
-use std::vec;
 
 #[derive(Debug, Serialize, Deserialize)]
 #[allow(dead_code)]
@@ -36,7 +35,7 @@ pub enum RecipeKind {
     Simple,
 }
 
-pub fn get_recipes(path: &Path) -> std::io::Result<HashMap<String, Recipe>> {
+pub fn get_recipes(path: &Path) -> Result<HashMap<String, Recipe>, std::io::Error> {
     let mut hash_map: HashMap<String, Recipe> = Default::default();
     let file = File::open(path)?;
     let reader = BufReader::new(file);
@@ -45,66 +44,63 @@ pub fn get_recipes(path: &Path) -> std::io::Result<HashMap<String, Recipe>> {
     for rec in json_recep {
         hash_map.insert(rec.name.clone(), rec);
     }
+
     Ok(hash_map)
 }
 
-pub fn get_order(path: &Path) -> std::io::Result<Vec<Ingredient>> {
+pub fn get_order(path: &Path) -> Result<Vec<Ingredient>, std::io::Error> {
     let file = File::open(path)?;
     let reader = BufReader::new(file);
 
     let json_orders: Vec<Ingredient> = serde_json::from_reader(reader)?;
+
     Ok(json_orders)
 }
 
-pub fn get_instruction(
-    hash_map: &HashMap<String, Recipe>,
-    ingr_orders: Vec<Ingredient>,
-) -> Vec<Instruction> {
-    let mut got_instruction: Vec<Instruction> = Vec::new();
+pub fn get_instruction(hash_map: &HashMap<String, Recipe>, order: Ingredient) -> Instruction {
+    let sub_instructions: Option<Vec<Instruction>>;
 
-    for ingr in &ingr_orders {
-        let sub_instructions: Option<Vec<Instruction>>;
-        match hash_map.get(&ingr.name) {
-            Some(ingr_recipe) => {
-                let ingr_production_per_second =
-                    ingr.amount / ingr_recipe.craft_amount / ingr_recipe.craft_time;
-                match &ingr_recipe.ingredients {
-                    Some(ingr_recipe_ingrs) => {
-                        let mut tmp_instructions: Vec<Instruction> = Vec::new();
-                        for ingr_recipe_ingr_to_order in ingr_recipe_ingrs {
-                            let neded_amount =
-                                ingr_recipe_ingr_to_order.amount * ingr_production_per_second;
-                            let instruction_out = get_instruction(
-                                hash_map,
-                                vec![Ingredient {
-                                    name: ingr_recipe_ingr_to_order.name.clone(),
-                                    amount: neded_amount,
-                                }],
-                            );
-                            for instruct in instruction_out {
-                                tmp_instructions.push(instruct);
-                            }
-                        }
-                        sub_instructions = tmp_instructions.into();
+    match hash_map.get(&order.name) {
+        Some(order_recipe) => {
+            let order_production_per_second =
+                order.amount / order_recipe.craft_amount / order_recipe.craft_time;
+
+            match &order_recipe.ingredients {
+                Some(order_recipe_ingrs) => {
+                    let mut tmp_instructions: Vec<Instruction> = Vec::new();
+
+                    for order_recipe_ingr_to_order in order_recipe_ingrs {
+                        let neded_amount =
+                            order_recipe_ingr_to_order.amount * order_production_per_second;
+
+                        let instruction_out = get_instruction(
+                            hash_map,
+                            Ingredient {
+                                name: order_recipe_ingr_to_order.name.clone(),
+                                amount: neded_amount,
+                            },
+                        );
+                        tmp_instructions.push(instruction_out);
                     }
-                    None => sub_instructions = None,
+
+                    sub_instructions = Some(tmp_instructions);
                 }
-            }
-            None => {
-                panic!(
-                    "ERROR: trying to found nonexisting \"{}\" in {hash_map:?}",
-                    ingr.name
-                );
+                None => sub_instructions = None,
             }
         }
-        got_instruction.push(Instruction {
-            ingredient: Ingredient {
-                name: ingr.name.clone(),
-                amount: ingr.amount,
-            },
-            sub_instruction: sub_instructions,
-        });
+        None => {
+            panic!(
+                "ERROR: trying to found nonexisting \"{}\" in {hash_map:?}",
+                &order.name
+            );
+        }
     }
 
-    got_instruction
+    Instruction {
+        ingredient: Ingredient {
+            name: order.name.clone(),
+            amount: order.amount,
+        },
+        sub_instruction: sub_instructions,
+    }
 }
