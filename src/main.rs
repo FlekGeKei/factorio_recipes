@@ -3,24 +3,16 @@ mod core;
 use core::Ingredient;
 use core::Instruction;
 use core::Recipe;
-use std::path::PathBuf;
 
 use clap::Parser;
 use clap::Subcommand;
+use std::path::PathBuf;
 
 #[derive(Parser)]
-#[command(version, about, long_about = None)]
+#[command(version, about, long_about = None, arg_required_else_help = true)]
 struct Cli {
     #[command(subcommand)]
-    command: Option<Commands>,
-
-    /// Help to do
-    #[arg(long)]
-    recipes: Option<PathBuf>,
-
-    /// Help to do
-    #[arg(long)]
-    request: Option<PathBuf>,
+    command: Commands,
 }
 
 #[derive(Subcommand)]
@@ -31,11 +23,11 @@ enum Commands {
     Cli {
         /// Help to do
         #[arg(long)]
-        recipes: PathBuf,
+        recipes: Option<PathBuf>,
 
         /// Help to do
         #[arg(long)]
-        request: PathBuf,
+        request: Option<PathBuf>,
     },
 }
 
@@ -49,7 +41,16 @@ impl Commands {
 }
 
 impl Cli {
-    fn run(recipes_path: PathBuf, request_path: PathBuf) -> Vec<Instruction> {
+    fn run(recipes_path: Option<PathBuf>, request_path: Option<PathBuf>) -> Vec<Instruction> {
+        let recipes_path = match recipes_path {
+            Some(path) => path,
+            None => PathBuf::from("./recipes.json"),
+        };
+        let request_path = match request_path {
+            Some(path) => path,
+            None => PathBuf::from("./request.json"),
+        };
+
         let recipes = Recipe::get_recipes(&recipes_path).expect("normal json");
 
         let mut instructions: Vec<Instruction> = Vec::new();
@@ -64,20 +65,7 @@ impl Cli {
 fn main() {
     let cli = Cli::parse();
 
-    let recipes_path = match cli.recipes {
-        Some(path) => path,
-        None => PathBuf::from("./recipes.json"),
-    };
-
-    let request_path = match cli.request {
-        Some(path) => path,
-        None => PathBuf::from("./request.json"),
-    };
-
-    let instructions = match cli.command {
-        Some(commands) => Commands::march(commands),
-        None => Cli::run(recipes_path, request_path),
-    };
+    let instructions = Commands::march(cli.command);
 
     dbg!(instructions);
 }
