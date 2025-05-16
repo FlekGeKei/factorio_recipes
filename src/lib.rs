@@ -88,7 +88,7 @@ impl Instruction {
             }
             None => {
                 panic!(
-                    "ERROR: trying to found nonexisting \"{}\" in {hash_map:?}",
+                    "ERROR: trying to found non-existing \"{}\" in {hash_map:?}",
                     &order.name
                 );
             }
@@ -101,6 +101,46 @@ impl Instruction {
             },
             sub_instruction: sub_instructions,
         }
+    }
+
+    pub fn print(&self, refr: Option<String>) {
+        const LV: &str = "│";
+        const LVAR: &str = "├";
+        const LUAR: &str = "└";
+
+        let prefix = refr.unwrap_or_default();
+        let cont = self.sub_instruction.is_some();
+
+        let name_prf = LVAR.to_owned() + " Name....";
+        let amount_prf = if !cont { LUAR } else { LVAR }.to_owned() + " Amount..";
+
+        println!("{}Instruction", prefix);
+
+        let last_cahr = prefix.chars().next_back().unwrap_or_default().to_string();
+        let prefix = match last_cahr.as_ref() {
+            LUAR => prefix[..prefix.len() - last_cahr.len()].to_string() + " ",
+            LVAR => prefix[..prefix.len() - last_cahr.len()].to_string() + LV,
+            _ => prefix,
+        };
+
+        println!("{}{}{}", prefix, name_prf, self.ingredient.name);
+        println!("{}{}{}", prefix, amount_prf, self.ingredient.amount);
+
+        if !cont {
+            return;
+        }
+
+        println!("{}{} Sub instruction", prefix, LUAR);
+
+        let pre_refr = prefix + "  ";
+
+        let mut i = 0;
+        let ingr = self.sub_instruction.as_ref().unwrap();
+        while i < ingr.len() - 1 {
+            ingr[i].print(Some(pre_refr.clone() + LVAR));
+            i += 1
+        }
+        ingr[i].print(Some(pre_refr + LUAR));
     }
 }
 
