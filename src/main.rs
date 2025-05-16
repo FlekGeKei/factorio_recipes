@@ -7,10 +7,10 @@ use clap::Subcommand;
 use std::path::PathBuf;
 
 #[derive(Parser)]
-#[command(version, about, long_about = None, arg_required_else_help = true)]
+#[command(version, about, long_about = None)]
 struct Args {
     #[command(subcommand)]
-    command: Commands,
+    command: Option<Commands>,
 }
 
 #[derive(Subcommand)]
@@ -63,7 +63,10 @@ impl crate::Commands {
 fn main() {
     let args = Args::parse();
 
-    let instructions = Commands::march(args.command);
+    let instructions = match args.command {
+        Some(command) => Commands::march(command),
+        None => Commands::cli_run(None, None),
+    };
 
     for instr in &instructions {
         instr.print(None);

@@ -5,6 +5,11 @@ use std::fs::File;
 use std::io::BufReader;
 use std::path::Path;
 
+const LV: &str = "│";
+const LVAR: &str = "├";
+const LUAR: &str = "└";
+const LH: &str = "─";
+
 #[derive(Debug, Serialize, Deserialize)]
 #[allow(dead_code)]
 pub struct Recipe {
@@ -104,10 +109,6 @@ impl Instruction {
     }
 
     pub fn print(&self, refr: Option<String>) {
-        const LV: &str = "│";
-        const LVAR: &str = "├";
-        const LUAR: &str = "└";
-
         let prefix = refr.unwrap_or_default();
         let cont = self.sub_instruction.is_some();
 
@@ -130,14 +131,14 @@ impl Instruction {
             return;
         }
 
-        println!("{}{} Sub instruction", prefix, LUAR);
+        println!("{}{}{} Sub instruction", prefix, LUAR, LH);
 
-        let pre_refr = prefix + "  ";
+        let pre_refr = prefix + "   ";
 
         let mut i = 0;
         let ingr = self.sub_instruction.as_ref().unwrap();
         while i < ingr.len() - 1 {
-            ingr[i].print(Some(pre_refr.clone() + LVAR));
+            ingr[i].print(Some(pre_refr.to_string() + LVAR));
             i += 1
         }
         ingr[i].print(Some(pre_refr + LUAR));
