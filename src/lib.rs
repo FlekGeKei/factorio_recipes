@@ -34,7 +34,7 @@ impl Recipe {
     }
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
 #[allow(dead_code)]
 pub struct Ingredient {
     pub name: String,
@@ -52,7 +52,7 @@ impl Ingredient {
     }
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
 #[allow(dead_code)]
 pub struct Instruction {
     pub ingredient: Ingredient,
@@ -143,9 +143,36 @@ impl Instruction {
         }
         ingr[i].print(Some(pre_refr + LUAR));
     }
+
+    pub fn get_complex(&self, hash_map: &HashMap<String, Recipe>) -> Option<Vec<Ingredient>> {
+        let recepy = hash_map.get(&self.ingredient.name).unwrap();
+        match &recepy.kind {
+            RecipeKind::Complex(kind) => Some(vec![Ingredient {
+                name: self.ingredient.name.clone() + "^" + kind,
+                amount: self.ingredient.amount,
+            }]),
+            RecipeKind::Simple => {
+                self.sub_instruction.as_ref()?;
+
+                let mut vec_ingr: Vec<Ingredient> = Vec::new();
+                for instr in self.sub_instruction.as_ref().unwrap() {
+                    let ingrs = instr.get_complex(hash_map);
+
+                    if ingrs.is_none() {
+                        continue;
+                    }
+
+                    for ingr in ingrs.unwrap_or_default() {
+                        vec_ingr.push(ingr);
+                    }
+                }
+                Some(vec_ingr)
+            }
+        }
+    }
 }
 
-#[derive(Debug, Deserialize, Serialize)]
+#[derive(Debug, Deserialize, Serialize, PartialEq)]
 pub enum RecipeKind {
     Complex(String),
     Simple,

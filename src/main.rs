@@ -56,6 +56,8 @@ impl crate::Commands {
             instructions.push(Instruction::get_instruction(&recipes, order));
         }
 
+        dbg!(&instructions[0].get_complex(&recipes));
+
         instructions
     }
 }
