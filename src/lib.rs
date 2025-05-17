@@ -34,7 +34,7 @@ impl Recipe {
     }
 }
 
-#[derive(Debug, Serialize, Deserialize, Clone)]
+#[derive(Debug, Serialize, Deserialize)]
 #[allow(dead_code)]
 pub struct Ingredient {
     pub name: String,
@@ -52,7 +52,7 @@ impl Ingredient {
     }
 }
 
-#[derive(Debug, Serialize, Deserialize, Clone)]
+#[derive(Debug, Serialize, Deserialize)]
 #[allow(dead_code)]
 pub struct Instruction {
     pub ingredient: Ingredient,
@@ -60,26 +60,26 @@ pub struct Instruction {
 }
 
 impl Instruction {
-    pub fn get_instruction(hash_map: &HashMap<String, Recipe>, order: Ingredient) -> Self {
+    pub fn get_instruction(hash_map: &HashMap<String, Recipe>, request: Ingredient) -> Self {
         let sub_instructions: Option<Vec<Instruction>>;
 
-        match hash_map.get(&order.name) {
-            Some(order_recipe) => {
-                let order_production_per_second =
-                    order.amount / order_recipe.craft_amount / order_recipe.craft_time;
+        match hash_map.get(&request.name) {
+            Some(request_recipe) => {
+                let request_production_per_second =
+                    request.amount / request_recipe.craft_amount / request_recipe.craft_time;
 
-                match &order_recipe.ingredients {
-                    Some(order_recipe_ingrs) => {
+                match &request_recipe.ingredients {
+                    Some(request_recipe_ingrs) => {
                         let mut tmp_instructions: Vec<Instruction> = Vec::new();
 
-                        for order_recipe_ingr_to_order in order_recipe_ingrs {
-                            let neded_amount =
-                                order_recipe_ingr_to_order.amount * order_production_per_second;
+                        for request_recipe_ingr_to_request in request_recipe_ingrs {
+                            let neded_amount = request_recipe_ingr_to_request.amount
+                                * request_production_per_second;
 
                             let instruction_out = Instruction::get_instruction(
                                 hash_map,
                                 Ingredient {
-                                    name: order_recipe_ingr_to_order.name.clone(),
+                                    name: request_recipe_ingr_to_request.name.clone(),
                                     amount: neded_amount,
                                 },
                             );
@@ -94,15 +94,15 @@ impl Instruction {
             None => {
                 panic!(
                     "ERROR: trying to found non-existing \"{}\" in {hash_map:?}",
-                    &order.name
+                    &request.name
                 );
             }
         }
 
         Instruction {
             ingredient: Ingredient {
-                name: order.name.clone(),
-                amount: order.amount,
+                name: request.name.clone(),
+                amount: request.amount,
             },
             sub_instruction: sub_instructions,
         }
@@ -133,15 +133,23 @@ impl Instruction {
 
         println!("{}{}{} Sub instruction", prefix, LUAR, LH);
 
-        let pre_refr = prefix + "   ";
+        Instruction::print_vec(self.sub_instruction.as_ref().unwrap(), Some(prefix));
+    }
+
+    pub fn print_vec(ingrs: &[Instruction], pref: Option<String>) {
+        let mut prefix = String::new();
+        if pref.is_some() {
+            prefix = pref.unwrap() + "   ";
+        } else {
+            println!("Instructions");
+        }
 
         let mut i = 0;
-        let ingr = self.sub_instruction.as_ref().unwrap();
-        while i < ingr.len() - 1 {
-            ingr[i].print(Some(pre_refr.to_string() + LVAR));
+        while i < ingrs.len() - 1 {
+            ingrs[i].print(Some(prefix.clone() + LVAR));
             i += 1
         }
-        ingr[i].print(Some(pre_refr + LUAR));
+        ingrs[i].print(Some(prefix + LUAR));
     }
 
     pub fn get_complex(&self, hash_map: &HashMap<String, Recipe>) -> Option<Vec<Ingredient>> {
@@ -165,7 +173,7 @@ impl Instruction {
                     'a: for ingr in ingrs.unwrap_or_default() {
                         if vec_ingr.is_empty() {
                             vec_ingr.push(ingr);
-                            continue 'a;
+                            continue;
                         }
 
                         for elem in vec_ingr.iter_mut() {

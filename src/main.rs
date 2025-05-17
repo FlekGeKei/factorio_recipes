@@ -70,7 +70,5 @@ fn main() {
         None => Commands::cli_run(None, None),
     };
 
-    for instr in &instructions {
-        instr.print(None);
-    }
+    Instruction::print_vec(&instructions, None);
 }
