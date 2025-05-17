@@ -25,7 +25,12 @@
     {
       "name": "water",
       "kind": "Simple",
-      "ingredients": null,
+      "ingredients": [
+        {
+          "name": "cum",
+          "amount": 5.0
+        }
+      ],
       "craft_amount": 1.0,
       "craft_time": 1.0
     },

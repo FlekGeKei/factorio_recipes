@@ -162,7 +162,18 @@ impl Instruction {
                         continue;
                     }
 
-                    for ingr in ingrs.unwrap_or_default() {
+                    'a: for ingr in ingrs.unwrap_or_default() {
+                        if vec_ingr.is_empty() {
+                            vec_ingr.push(ingr);
+                            continue 'a;
+                        }
+
+                        for elem in vec_ingr.iter_mut() {
+                            if elem.name == ingr.name {
+                                elem.amount += ingr.amount;
+                                break 'a;
+                            }
+                        }
                         vec_ingr.push(ingr);
                     }
                 }
@@ -171,6 +182,7 @@ impl Instruction {
         }
     }
 }
+impl Vec<Instruction> {}
 
 #[derive(Debug, Deserialize, Serialize, PartialEq)]
 pub enum RecipeKind {
