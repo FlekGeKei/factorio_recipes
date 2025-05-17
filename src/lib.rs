@@ -182,7 +182,6 @@ impl Instruction {
         }
     }
 }
-impl Vec<Instruction> {}
 
 #[derive(Debug, Deserialize, Serialize, PartialEq)]
 pub enum RecipeKind {
