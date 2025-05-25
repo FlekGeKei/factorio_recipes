@@ -1,3 +1,6 @@
+mod cmd;
+
+use cmd::init_cmd;
 use factorio_recipes::Ingredient;
 use factorio_recipes::Instruction;
 use factorio_recipes::Recipe;
@@ -20,35 +23,29 @@ enum Commands {
     /// help to do
     Cli {
         /// Help to do
-        #[arg(long)]
-        recipes: Option<PathBuf>,
+        #[arg(long, default_value = "./recipes.json")]
+        recipes: PathBuf,
 
         /// Help to do
-        #[arg(long)]
-        request: Option<PathBuf>,
+        #[arg(long, default_value = "./request.json")]
+        request: PathBuf,
     },
 }
 
 impl Commands {
-    fn march(commands: Commands) -> Vec<Instruction> {
-        match commands {
-            Commands::Cmd => panic!("CMD command is WIP"),
-            Commands::Cli { recipes, request } => crate::Commands::cli_run(recipes, request),
+    fn c_match(self) {
+        match self {
+            Commands::Cmd => init_cmd(),
+            Commands::Cli { recipes, request } => {
+                let c = crate::Commands::cli_run(recipes, request);
+                Instruction::print_vec(&c, None);
+            }
         }
     }
 }
 
 impl crate::Commands {
-    fn cli_run(recipes_path: Option<PathBuf>, request_path: Option<PathBuf>) -> Vec<Instruction> {
-        let recipes_path = match recipes_path {
-            Some(path) => path,
-            None => PathBuf::from("./recipes.json"),
-        };
-        let request_path = match request_path {
-            Some(path) => path,
-            None => PathBuf::from("./request.json"),
-        };
-
+    fn cli_run(recipes_path: PathBuf, request_path: PathBuf) -> Vec<Instruction> {
         let recipes = Recipe::get_recipes(&recipes_path).expect("normal json");
 
         let mut instructions: Vec<Instruction> = Vec::new();
@@ -64,11 +61,14 @@ impl crate::Commands {
 
 fn main() {
     let args = Args::parse();
-
-    let instructions = match args.command {
-        Some(command) => Commands::march(command),
-        None => Commands::cli_run(None, None),
-    };
-
-    Instruction::print_vec(&instructions, None);
+    match args.command {
+        Some(command) => command.c_match(),
+        None => {
+            let c = crate::Commands::cli_run(
+                PathBuf::from("./recipes.json"),
+                PathBuf::from("./request.json"),
+            );
+            Instruction::print_vec(&c, None);
+        }
+    }
 }
