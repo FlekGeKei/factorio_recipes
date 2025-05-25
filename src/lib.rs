@@ -136,7 +136,7 @@ impl Instruction {
         Instruction::print_vec(self.sub_instruction.as_ref().unwrap(), Some(prefix));
     }
 
-    pub fn print_vec(ingrs: &[Instruction], pref: Option<String>) {
+    pub fn print_vec(instr: &[Instruction], pref: Option<String>) {
         let mut prefix = String::new();
         if pref.is_some() {
             prefix = pref.unwrap() + "   ";
@@ -145,11 +145,11 @@ impl Instruction {
         }
 
         let mut i = 0;
-        while i < ingrs.len() - 1 {
-            ingrs[i].print(Some(prefix.clone() + LVAR));
+        while i < instr.len() - 1 {
+            instr[i].print(Some(prefix.clone() + LVAR));
             i += 1
         }
-        ingrs[i].print(Some(prefix + LUAR));
+        instr[i].print(Some(prefix + LUAR));
     }
 
     pub fn get_complex(&self, hash_map: &HashMap<String, Recipe>) -> Option<Vec<Ingredient>> {
