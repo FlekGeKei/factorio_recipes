@@ -1,6 +1,7 @@
 mod cmd;
 
 use cmd::init_cmd;
+use factorio_recipes::optimize_complex;
 use factorio_recipes::Ingredient;
 use factorio_recipes::Instruction;
 use factorio_recipes::Recipe;
@@ -53,7 +54,7 @@ impl crate::Commands {
             instructions.push(Instruction::get_instruction(&recipes, order));
         }
 
-        dbg!(&instructions[0].get_complex(&recipes));
+        optimize_complex(instructions[0].get_complex(&recipes).unwrap());
 
         instructions
     }

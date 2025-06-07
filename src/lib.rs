@@ -52,6 +52,24 @@ impl Ingredient {
     }
 }
 
+pub fn optimize_complex(complex: Vec<Ingredient>) {
+    dbg!(&complex);
+    let mut compl_rec: Vec<(String, f64)> = vec![];
+    for ingr in complex {
+        let compl_name = &ingr.name[ingr.name.find('^').expect("use normal shit") + 1..];
+        let elem = compl_rec.iter_mut().find(|x| x.0 == compl_name);
+        match elem {
+            None => compl_rec.push((compl_name.to_string(), ingr.amount)),
+            Some(i) => {
+                if i.1 < ingr.amount {
+                    i.1 = ingr.amount
+                }
+            }
+        }
+    }
+    dbg!(compl_rec);
+}
+
 #[derive(Debug, Serialize, Deserialize)]
 #[allow(dead_code)]
 pub struct Instruction {

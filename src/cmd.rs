@@ -10,16 +10,13 @@ use factorio_recipes::{Ingredient, Instruction, Recipe};
 #[clap(disable_help_flag = true)]
 enum Cmd {
     /// Import recipes path
-    #[command(short_flag = 'm')]
     Import { path: PathBuf },
     /// Get instruction
-    #[command(subcommand, short_flag = 'i')]
-    Instructions(CmdInstr),
+    #[command(subcommand)]
+    Instr(CmdInstr),
     /// Calculate complex recipes
-    #[command(short_flag = 'c')]
-    Calculate,
+    Calc,
     /// Quit
-    #[command(short_flag = 'q')]
     Quit,
 }
 #[derive(Subcommand, Debug)]
@@ -83,7 +80,7 @@ pub fn init_cmd() {
                     }
                 };
             }
-            Cmd::Instructions(CmdInstr::Get { name, amount }) => {
+            Cmd::Instr(CmdInstr::Get { name, amount }) => {
                 if state.recipes.is_empty() {
                     println!("ERROR: please import recipes first");
                     continue;
@@ -93,21 +90,21 @@ pub fn init_cmd() {
                 instr.print(None);
                 state.instructions.push(instr);
             }
-            Cmd::Instructions(CmdInstr::Clear) => {
+            Cmd::Instr(CmdInstr::Clear) => {
                 if state.instructions.is_empty() {
                     println!("INFO: Instructions are already empty");
                     continue;
                 }
                 state.instructions.clear();
             }
-            Cmd::Instructions(CmdInstr::Print) => {
+            Cmd::Instr(CmdInstr::Print) => {
                 if state.instructions.is_empty() {
                     println!("INFO: Instructions are empty");
                     continue;
                 }
                 Instruction::print_vec(&state.instructions, None);
             }
-            Cmd::Calculate => todo!(),
+            Cmd::Calc => todo!(),
             Cmd::Quit => break,
         }
     }
